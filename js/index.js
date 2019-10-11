@@ -3,7 +3,7 @@ const express = require('express')
 const app = express()
 const InMemoryWorkshop = require("./inMemoryWorkshop")
 const path = require("path")
-const ejs = require('ejs')
+// const ejs = require('ejs')
 var bodyParser = require('body-parser')
 
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -23,12 +23,19 @@ app.get('/', function (req, res) {
     })
 })
 
-app.get('/workshop', function (req, res) {
-    console.log("get")
-    res.render('workshop')
+app.get('/add-workshop', function (req, res) {
+    res.render('add-workshop')
 })
 
-app.post('/workshop', function (req, res) {
+app.get('/remove-workshop', function (req, res) {
+    res.render('remove-workshop')
+})
+
+app.get('/update-workshop', function (req, res) {
+    res.render('update-workshop')
+})
+
+app.post('/add-workshop', function (req, res) {
     const name = req.body.name
     const description = req.body.description
     InMemoryWorkshop.addWorkshop(name, description).then(() => {
@@ -42,21 +49,31 @@ app.post('/workshop', function (req, res) {
     .catch(e =>res.send(e.message))
 })
 
-app.get('/workshop/:name', function (req, res) {
-    const workshopName = req.params.name
-    InMemoryWorkshop.getWorkshopByName(workshopName)
-    .then(workshop => {
-        res.render('ejs/workshop', workshop)
-    })
-    .catch(e =>ejs.send(e.message))
-})
-
 app.post('/remove-workshop', function (req, res) {
-    res.status(500).send("TODO")
+    const name = req.body.name
+    InMemoryWorkshop.removeWorkshop(name).then(() => {
+        InMemoryWorkshop.getWorkshopList()
+        .then(workshops => {
+            res.render("index", {
+                workshops: workshops
+            })
+        })
+    })
+    .catch(e =>res.send(e.message))
 })
 
 app.post('/update-workshop', function(req, res) {
-    res.status(500).send("TODO")
+    const name = req.body.name
+    const description = req.body.description
+    InMemoryWorkshop.updateWorkshop(name, description).then(() => {
+        InMemoryWorkshop.getWorkshopList()
+        .then(workshops => {
+            res.render("index", {
+                workshops: workshops
+            })
+        })
+    })
+    .catch(e =>res.send(e.message))
 })
 
 app.listen(3000, function () {
